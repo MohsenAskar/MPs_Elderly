@@ -2,73 +2,21 @@
 * 1st exclusion 
 **********************************************************************************
 // Drop non elderly 
-use "D:\Multimorbidity_dataset_new\mod_file_mohsen.dta", replace
+use "\mod_file.dta", replace
 drop kodenavn
 drop if alder < 65
-// Removing entries with missing ICD codes
+// Removing entries with miscoded ICD codes
 drop if kodeverdi==" "
 // to remove irrelevant ICD COdes
 drop if strpos( kodeverdi,"X9")
 drop if strpos( kodeverdi,"Y4")
 drop if strpos( kodeverdi,"X8")
 drop if strpos( kodeverdi,"V4")
-drop if strpos( kodeverdi,"Z90")
-drop if strpos( kodeverdi,"Z91")
-drop if strpos( kodeverdi,"Z92")
-drop if strpos( kodeverdi,"Z93")
-drop if strpos( kodeverdi,"Z94")
-drop if strpos( kodeverdi,"Z96")
-drop if strpos( kodeverdi,"Z97")
-drop if strpos( kodeverdi,"Z98")
-drop if strpos( kodeverdi,"Z99")
-drop if strpos( kodeverdi,"Z89")
-drop if strpos( kodeverdi,"Z88")
-drop if strpos( kodeverdi,"Z87")
-drop if strpos( kodeverdi,"Z86")
-drop if strpos( kodeverdi,"R68")
-drop if strpos( kodeverdi,"Z84")
-drop if strpos( kodeverdi,"Z83")
-drop if strpos( kodeverdi,"Z76")
-drop if strpos( kodeverdi,"Z75")
-drop if strpos( kodeverdi,"Z74")
-drop if strpos( kodeverdi,"Z73")
-drop if strpos( kodeverdi,"Z72")
-drop if strpos( kodeverdi,"Z71")
-drop if strpos( kodeverdi,"Z70")
-drop if strpos( kodeverdi,"Z65")
-drop if strpos( kodeverdi,"Z64")
-drop if strpos( kodeverdi,"Z60")
-drop if strpos( kodeverdi,"Z59")
-drop if strpos( kodeverdi,"Z58")
-drop if strpos( kodeverdi,"Z57")
-drop if strpos( kodeverdi,"Z56")
-drop if strpos( kodeverdi,"Z5")
-drop if strpos( kodeverdi,"Z40")
-drop if strpos( kodeverdi,"Z41")
-drop if strpos( kodeverdi,"Z42")
-drop if strpos( kodeverdi,"Z43")
-drop if strpos( kodeverdi,"Z44")
-drop if strpos( kodeverdi,"Z45")
-drop if strpos( kodeverdi,"Z46")
-drop if strpos( kodeverdi,"Z47")
-drop if strpos( kodeverdi,"Z48")
-drop if strpos( kodeverdi,"Z49")
 drop if strpos( kodeverdi,"Z3")
 drop if strpos( kodeverdi,"X0n")
-drop if strpos( kodeverdi,"U06")
 drop if strpos( kodeverdi,"Z0")
-drop if strpos( kodeverdi,"Z20")
-drop if strpos( kodeverdi,"Z23")
-drop if strpos( kodeverdi,"Z24")
-drop if strpos( kodeverdi,"Z25")
-drop if strpos( kodeverdi,"Z26")
-drop if strpos( kodeverdi,"Z27")
-drop if strpos( kodeverdi,"Z28")
-drop if strpos( kodeverdi,"Z29")
 drop if strpos( kodeverdi,"T4n")
 drop if strpos( kodeverdi,"Z1")
-drop if strpos( kodeverdi,"Z62")
-drop if strpos( kodeverdi,"Z63")
 
 // removing patients that had only 1 diagnosis multiple times
 sort lopenr
@@ -84,14 +32,14 @@ drop n_diseases2 n_diseases okay
 bysort lopenr:drop if _N==1
 // removing duplicates in terms of all variables
 duplicates drop
-save "D:\Multimorbidity_dataset_new\data_after_all.dta" 
-save "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\data_after_all.dta", replace
+save "D:\data_after_all.dta" 
+save "\data_after_all.dta", replace
 
 **********************************************
 *  Determine chronic ICD-10 code using CCIR
 **********************************************
 // Fixing CCIR list 
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_v2023-1.csv"
+import delimited "\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_v2023-1.csv"
 drop in 1/2
 rename v1 ICD10CM_CODE
 rename v2 ICD10CM_DESCRIPTION
@@ -108,30 +56,30 @@ rename test CHRONIC_INDICATOR2
 drop CHRONIC_INDICATOR
 rename CHRONIC_INDICATOR2 CHRONIC_INDICATOR
 gen ICD_3=substr(ICD10CM_CODE ,1,3)
-save "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_Stata.dta", replace
+save "\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_Stata.dta", replace
 keep if CHRONIC_INDICATOR == "Chronic"
-codebook ICD_3 // 772 unique ICD- 3 character code
-save "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD.dta", replace
+codebook ICD_3
+save "\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD.dta", replace
 
 
 // merge with chronic conditions from CCIR list 
-use "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD.dta", replace
+use "\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD.dta", replace
 keep ICD_3 CHRONIC_INDICATOR
 duplicates drop 
-save "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD_To_Merge.dta"
+save "\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD_To_Merge.dta"
 
-use "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\data_after_all.dta", replace
+use "\Analysis\data_after_all.dta", replace
 rename kodeverdi ICD_3
-merge m:1 ICD_3 using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD_To_Merge.dta"
+merge m:1 ICD_3 using "\Chronic_Condition_Indicatior_Refined_CCIR\CCIR_List_3_Character_ICD_To_Merge.dta"
 keep if _merge ==3
 drop _merge
 rename ICD_3 hovedtilstand
 rename lopenr pasientlopenr
 // save 
-export delimited using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\Only_Chronic_after_CCIR.csv", replace
+export delimited using "\Analysis\Only_Chronic_after_CCIR.csv", replace
 
 // histogram number of morbidties7 percent in the population 
-import delimited using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\Only_Chronic_after_CCIR.csv", clear
+import delimited using "\Analysis\Only_Chronic_after_CCIR.csv", clear
 sort pasientlopenr hovedtilstand
 duplicates drop pasientlopenr hovedtilstand, force
 by pasientlopenr : gen n_diseases = _N
@@ -141,8 +89,6 @@ duplicates drop
 drop if n_diseases == 1
 tabstat n_diseases , stats(n mean median min max)
 hist n_diseases, percent
-
-// Files for separate sex are created in the same folder as well (SHOULD BE CREATED)
 
 // Move to python to calculate RR and Phi
 // CODE IN PYTHON 
@@ -154,7 +100,7 @@ hist n_diseases, percent
 import pandas as pd
 import numpy as np
 # Loading data created in Stata
-data= pd.read_csv(r"C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\Only_Chronic_after_CCIR.csv")
+data= pd.read_csv(r"\Analysis\Only_Chronic_after_CCIR.csv")
 data.shape
 data = data.rename(columns={'pasientlopenr': 'patientid', 'hovedtilstand': 'code_system'})
 # Create a count column
@@ -211,7 +157,7 @@ print(result_df)
 result_df['PatientCount'].describe()
 result_df['Disease1'].nunique() #641
 result_df['Disease2'].nunique()#682
-result_df.to_csv(r"C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\reults_df_RR_Phi.csv", index= False)
+result_df.to_csv(r"\Analysis\reults_df_RR_Phi.csv", index= False)
 
 # counting uniques patiets and ICD codes
 unique_diseases_result_df = pd.unique(result_df[['Disease1', 'Disease2']].values.ravel()).size
@@ -279,7 +225,7 @@ print(final_result_df)
 final_result_df['PatientCount'].describe()
 final_result_df['Disease1'].nunique()
 final_result_df['Disease2'].nunique()
-final_result_df.to_csv(r"C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\final_results_df_RR_Phi.csv", index=False)
+final_result_df.to_csv(r"\Analysis\final_results_df_RR_Phi.csv", index=False)
 
 # Count unique patients and ICD codes after final filtering
 unique_diseases_final_result_df = pd.unique(final_result_df[['Disease1', 'Disease2']].values.ravel()).size
@@ -305,8 +251,9 @@ print(f"Unique patients: {final_unique_patient_count}")
 
 // END OF CODE IN PYTHON, BACK TO STATA
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 // after keeping RR > 1 and phi >0  and saving the results in Python
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\reults_df_RR_Phi_Filtered_50_Patients_5_Edgeweight.csv", clear 
+import delimited "\Analysis\reults_df_RR_Phi_Filtered_50_Patients_5_Edgeweight.csv", clear 
 
 // generate the networks 
 preserve
@@ -317,7 +264,7 @@ nwexport, type(pajek) replace
 
 
 // Group codes after ICD hirarchy to color them afterwards
-import delimited using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\Only_Chronic_after_CCIR.csv", clear
+import delimited using "\Analysis\Only_Chronic_after_CCIR.csv", clear
 gen ICD1=substr( hovedtilstand ,1,1)
 gen ICD2=substr( hovedtilstand ,1,2)
 gen icdgrp=0
@@ -363,19 +310,19 @@ replace color ="#f4831f" if icdgrp==17 // XVII
 replace color ="#27286f" if icdgrp==18 // XVIII
 replace color ="#ec2224" if icdgrp==19 // XIX
 
-export delimited using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\Only_Chronic_after_CCIR.csv", replace
+export delimited using "\Analysis\Only_Chronic_after_CCIR.csv", replace
 
 // attributes for import to Gephi
 // add patients number of each ICD code
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\Only_Chronic_after_CCIR.csv", clear 
+import delimited "\Analysis\Only_Chronic_after_CCIR.csv", clear 
 preserve
 duplicates drop hovedtilstand pasientlopenr, force
 bysort hovedtilstand :egen no_patients_each_code =count(pasientlopenr)
 sort no_patients_each_code
 keep hovedtilstand icdgrp color no_patients_each_code
 duplicates drop
-export delimited using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Code_Chapter_Color_No_Users.csv", replace
-save "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Code_Chapter_Color_No_Users.dta", replace
+export delimited using "\Analysis\ICD_Code_Chapter_Color_No_Users.csv", replace
+save "\Analysis\ICD_Code_Chapter_Color_No_Users.dta", replace
 // same was done to men, women files
 // move to Gephi for visulaizing  
 // File reults_df_RR_Phi.csv, can we make the network by patient counts, RR or Phi 
@@ -384,15 +331,15 @@ save "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modular
 
 // add attributes to gephi
 // merge color, no_users and ICD chapter
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\From_Gephi\Network_modules_from_Gephi.csv", clear 
-merge 1:1 label using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Code_Chapter_Color_No_Users.dta" 
+import delimited "\Analysis\From_Gephi\Network_modules_from_Gephi.csv", clear 
+merge 1:1 label using "\Analysis\ICD_Code_Chapter_Color_No_Users.dta" 
 keep if _merge==3
 drop _merge
 // merge ICD description 
-merge 1:1 label using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Codes_Describtion.dta"
+merge 1:1 label using "\Analysis\ICD_Codes_Describtion.dta"
 keep if _merge==3
 drop _merge
-export delimited using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\To_Gephi\Network_Modules_With_Full_Attributes.csv", replace
+export delimited using "\Analysis\To_Gephi\Network_Modules_With_Full_Attributes.csv", replace
 
 // determine the ICD chapter distribtion in each module
 drop _merge
@@ -403,24 +350,24 @@ restore // and so on
 
 
 // make a network filtered for no. op patients (drop if < 50 ptients), and edges (drop if < 5 edges)
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\reults_df_RR_Phi.csv", clear
+import delimited "\Analysis\reults_df_RR_Phi.csv", clear
 drop if patientcount < 5
 rename disease1 label
-merge m:1 label using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Code_Chapter_Color_No_Users.dta"
+merge m:1 label using "\Analysis\ICD_Code_Chapter_Color_No_Users.dta"
 keep if _merge == 3
 drop _merge
 rename  label disease1
 rename disease2 label
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\reults_df_RR_Phi.csv", clear
+import delimited "\reults_df_RR_Phi.csv", clear
 drop if patientcount < 5
 rename disease1 label
-merge m:1 label using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Code_Chapter_Color_No_Users.dta"
+merge m:1 label using "\Analysis\ICD_Code_Chapter_Color_No_Users.dta"
 keep if _merge == 3
 drop _merge
 rename  label disease1
 rename disease2 label
 rename no_patients_each_code no_patients_each_code_2
-merge m:1 label using "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\ICD_Code_Chapter_Color_No_Users.dta"
+merge m:1 label using "\Analysis\ICD_Code_Chapter_Color_No_Users.dta"
 keep if _merge == 3
 drop _merge
 sort no_patients_each_code
@@ -437,7 +384,7 @@ nwexport, type(pajek) replace
 // export from Gephi as .csv 
 // Heatmap ICD-10 chapter coocurances in the network edges
 
-import delimited "C:\Users\mas082\OneDrive - UiT Office 365\Desktop\Ongoing_Projects\Modularity_Comorbidy_Detection\Analysis\reults_df_RR_Phi_Filtered_50_Patients_5_Edgeweight.csv", clear 
+import delimited "\Analysis\reults_df_RR_Phi_Filtered_50_Patients_5_Edgeweight.csv", clear 
 preserve
 gen ICD1=substr( disease1 ,1,1)
 gen ICD2=substr( disease1 ,1,2)
